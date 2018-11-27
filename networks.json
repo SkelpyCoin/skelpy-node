@@ -1,0 +1,57 @@
+{
+  "skelpy": {
+    "messagePrefix": "SKELPY message:\n",
+    "bip32": {
+      "public": 46090600,
+      "private": 46089520
+    },
+    "pubKeyHash": 23,
+    "wif": 170,
+    "client": {
+      "token":"SKELPY",
+      "symbol":"Ƨ",
+      "explorer":"https://explorer.skelpy.co"
+    }
+  },
+  "bitcoin": {
+    "messagePrefix": "Bitcoin message:\n",
+    "bip32": {
+      "public": 46090600,
+      "private": 46089520
+    },
+    "pubKeyHash": 1,
+    "wif": 1,
+    "client": {
+      "token":"Bitcoin",
+      "symbol":"B"
+    }
+  },
+  "testnet": {
+    "messagePrefix": "TESTNET SKELPY message:\n",
+    "bip32": {
+      "public": 70617039,
+      "private": 70615956
+    },
+    "pubKeyHash": 82,
+    "wif": 186,
+    "client": {
+      "token":"TSKELPY",
+      "symbol":"TƧ",
+      "explorer":"http://texplorer.skelpy.co"
+    }
+  },
+  "devnet": {
+    "messagePrefix": "DEVNET SKELPY message:\n",
+    "bip32": {
+      "public": 70617039,
+      "private": 70615956
+    },
+    "pubKeyHash": 30,
+    "wif": 187,
+    "client": {
+      "token":"DSKELPY",
+      "symbol":"DƧ",
+      "explorer":"http://dexplorer.skelpy.co"
+    }
+  }
+}

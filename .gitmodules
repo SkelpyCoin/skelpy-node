@@ -1,0 +1,3 @@
+[submodule "test/skelpy-js"]
+	path = test/skelpy-js
+	url = https://github.com/skelpycoin/skelpy-js.git
