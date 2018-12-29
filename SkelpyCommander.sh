@@ -4,6 +4,7 @@
 #                                                     #
 #                 Skelpy Commander Script             #
 #                 01/10/2018 Skelpy Team              #
+#                 29/12/2018 Last Update              #
 #                                                     #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
@@ -75,7 +76,7 @@ fi
 
 EDIT=nano
 
-GIT_ORIGIN=testnet
+GIT_ORIGIN=mainnet
 
 LOC_SERVER="http://localhost:4001"
 
@@ -218,14 +219,14 @@ function proc_vars {
 
 #PSQL Queries
 query() {
-PUBKEY="$(psql -d skp_testnet -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-DNAME="$(psql -d skp_testnet -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-PROD_BLOCKS="$(psql -d skp_testnet -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-MISS_BLOCKS="$(psql -d skp_testnet -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-#BALANCE="$(psql -d skp_testnet -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
-BALANCE="$(psql -d skp_testnet -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
-HEIGHT="$(psql -d skp_testnet -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
-RANK="$(psql -d skp_testnet -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'0369093c456fd8704ae4e401f3b3a3ad1581453cf7feb34c513a2f599f9adf6aac'"';' | xargs)"
+PUBKEY="$(psql -d skp_mainnet -t -c 'SELECT ENCODE("publicKey",'"'"'hex'"'"') as "publicKey" FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+DNAME="$(psql -d skp_mainnet -t -c 'SELECT username FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+PROD_BLOCKS="$(psql -d skp_mainnet -t -c 'SELECT producedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+MISS_BLOCKS="$(psql -d skp_mainnet -t -c 'SELECT missedblocks FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+#BALANCE="$(psql -d skp_mainnet -t -c 'SELECT (balance/100000000.0) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | sed -e 's/^[[:space:]]*//')"
+BALANCE="$(psql -d skp_mainnet -t -c 'SELECT to_char(("balance"/100000000.0), '"'FM 999,999,999,990D00000000'"' ) as balance FROM mem_accounts WHERE "address" = '"'"$ADDRESS"'"' ;' | xargs)"
+HEIGHT="$(psql -d skp_mainnet -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;' | xargs)"
+RANK="$(psql -d skp_mainnet -t -c 'WITH RANK AS (SELECT DISTINCT "publicKey", "vote", "round", row_number() over (order by "vote" desc nulls last) as "rownum" FROM mem_delegates where "round" = (select max("round") from mem_delegates) ORDER BY "vote" DESC) SELECT "rownum" FROM RANK WHERE "publicKey" = '"'0369093c456fd8704ae4e401f3b3a3ad1581453cf7feb34c513a2f599f9adf6aac'"';' | xargs)"
 }
 
 # Stats Address Change
@@ -602,7 +603,7 @@ if [ "$(ls -A $SNAPDIR)" ]; then
         ## Numeric checks
                 if [ $REPLY -le ${#snapshots[*]} ]; then
                         echo -e "$(yellow "\n         Restoring snapshot ${snapshots[$((REPLY-1))]}")\n"
-			pg_restore -O -j 8 -d skp_testnet $SNAPDIR/${snapshots[$(($REPLY-1))]} 2>/dev/null
+			pg_restore -O -j 8 -d skp_mainnet $SNAPDIR/${snapshots[$(($REPLY-1))]} 2>/dev/null
 			echo -e "$(green "   Snapshot ${snapshots[$(($REPLY-1))]} was restored sucessfuly")\n"
                 else
                         echo -e "$(red "\n        Value is out of list range!\n")"
@@ -626,7 +627,7 @@ else
                         if [[ "$YN" =~ [Yy]$ ]]; then
                                 #here calling the db_restore function
 				echo -e "$(yellow "\n   Restoring $SNAPDIR/current ... ")"
-                                pg_restore -O -j 8 -d skp_testnet $SNAPDIR/current 2>/dev/null
+                                pg_restore -O -j 8 -d skp_mainnet $SNAPDIR/current 2>/dev/null
 				echo -e "$(green "\n    Current snapshot has been restored\n")"
                         fi
         else
@@ -719,7 +720,7 @@ function create_db {
                 sudo service postgresql start
         fi
         sleep 1
-#       sudo -u postgres dropdb --if-exists skp_testnet
+#       sudo -u postgres dropdb --if-exists skp_mainnet
 #       sleep 1
 #       sudo -u postgres dropuser --if-exists $USER # 2>&1
 #       sleep 1
@@ -727,7 +728,7 @@ function create_db {
 	sudo -u postgres psql -c "update pg_database set encoding = 6, datcollate = 'en_US.UTF8', datctype = 'en_US.UTF8' where datname = 'template1';" >&- 2>&-
         sudo -u postgres psql -c "CREATE USER $USER WITH PASSWORD 'password' CREATEDB;" >&- 2>&-
         sleep 1
-        createdb skp_testnet
+        createdb skp_mainnet
 }
 
 # Check if DB exists
@@ -737,7 +738,7 @@ function db_exists {
                 sudo service postgresql start
         fi
 
-        if [[ ! $(sudo -u postgres psql skp_testnet -c '\q' 2>&1) ]]; then
+        if [[ ! $(sudo -u postgres psql skp_mainnet -c '\q' 2>&1) ]]; then
                 read -r -n 1 -p "$(yellow "  Database exists! Do you want to drop it? (y/n):") " YN
                         if [[ "$YN" =~ [Yy]$ ]]; then
                                 drop_db;
@@ -772,7 +773,7 @@ function drop_db {
         if [ -z "$pgres" ]; then
                 sudo service postgresql start
         fi
-        dropdb --if-exists skp_testnet
+        dropdb --if-exists skp_mainnet
 }
 
 function drop_user {
@@ -792,7 +793,7 @@ function update_Skelpy {
 	        cd $Skelpydir
 #       	 forever stop app.js
 		TMP_PASS=$(jq -r '.forging.secret | @csv' config.$GIT_ORIGIN.json)
-		mv config.testnet.json ../
+		mv config.mainnet.json ../
 	        git pull origin $GIT_ORIGIN
 		git checkout $GIT_ORIGIN
 	        npm install
@@ -806,22 +807,22 @@ function update_Skelpy {
 
 		unset TMP_PASS
 #		forever restart $forever_process
-#	        forever start app.js --genesis genesisBlock.testnet.json --config config.testnet.json
+#	        forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json
 	else
 		echo "Skelpy Node is already up to date!"
 		sleep 2
 	fi
 }
 
-# Put the password in config.testnet.json
+# Put the password in config.mainnet.json
 function secret {
         echo -e "\n"
-	#Put check if Skelpydir is empty, if it is stays only config.testnet.json
+	#Put check if Skelpydir is empty, if it is stays only config.mainnet.json
 	echo -e "$(yellow " Enter (copy/paste) your private key (secret)")"
 	echo -e "$(yellow "    (WITHOUT QUOTES!) followed by 'Enter'")"
         read -e -r -p ": " secret
-#        sed -i "s/\"secret\":\ \[/& \"$secret\"\ /" $Skelpydir/config.testnet.json
-	sed -i "/.*secret.*/c\ \ \ \ \"secret\":\ \[\ \"$secret\"\ \]\," $Skelpydir/config.testnet.json
+#        sed -i "s/\"secret\":\ \[/& \"$secret\"\ /" $Skelpydir/config.mainnet.json
+	sed -i "/.*secret.*/c\ \ \ \ \"secret\":\ \[\ \"$secret\"\ \]\," $Skelpydir/config.mainnet.json
 }
 
 ### Menu Options ###
@@ -853,7 +854,7 @@ one(){
 		sleep 1
 		proc_vars
 		log_rotate
-		config="$parent/config.testnet.json"
+		config="$parent/config.mainnet.json"
 #		echo "$config" 2>/dev/null
 #		pause
 		if  [ ! -e $config ] ; then
@@ -887,14 +888,14 @@ two(){
                 	fi
 			echo -e "$(yellow "    Backing up configuration file to $parent")\n"
 			sleep 1
-			if [ -e $parent/config.testnet.json ] ; then
+			if [ -e $parent/config.mainnet.json ] ; then
 				read -e -r -p "$(yellow "    Backup file exists! Overwrite? (Y/N): ")" -i "Y" keys
 				if [ "$keys" == "Y" ]; then
-					cp $Skelpydir/config.testnet.json $parent
+					cp $Skelpydir/config.mainnet.json $parent
 					cd $parent
 				fi
 			else
-				cp $Skelpydir/config.testnet.json $parent
+				cp $Skelpydir/config.mainnet.json $parent
 				cd $parent
 			fi
 			echo -e "$(yellow "        Removing Skelpy Node directory...")\n"
@@ -904,11 +905,11 @@ two(){
 			drop_user
 			one
 			echo ""
-			if [ -e $parent/config.testnet.json ] ; then
+			if [ -e $parent/config.mainnet.json ] ; then
 				read -e -r -p "$(yellow " Do you want to restore your config? (Y/N): ")" -i "Y" keys
 #				echo "Break1"; pause
 				if [ "$keys" == "Y" ]; then
-					cp $parent/config.testnet.json $Skelpydir
+					cp $parent/config.mainnet.json $Skelpydir
 					echo -e "\n$(green " ✔ Config was restored in $Skelpydir")\n"
 					read -e -r -p "$(yellow " Do you want to start Skelpy Node now? (Y/N): ")" -i "Y" keys
 					if [ "$keys" == "Y" ]; then
@@ -928,10 +929,10 @@ two(){
 			sleep 1
 			one
 			proc_vars
-			if [ -e $parent/config.testnet.json ] ; then
+			if [ -e $parent/config.mainnet.json ] ; then
 				read -e -r -p "$(yellow " Do you want to restore your config? (Y/N): ")" -i "Y" keys
 				if [ "$keys" == "Y" ]; then
-					cp $parent/config.testnet.json $Skelpydir
+					cp $parent/config.mainnet.json $Skelpydir
 					echo -e "\n$(green " ✔ Config was restored in $Skelpydir")\n"
 				fi
 			else
@@ -968,7 +969,7 @@ three(){
                 	echo -e "\n$(red "       ✘ Skelpy Node process is not running")\n"
 			echo -e "$(green "            Updating Skelpy Node...")\n"
 			update_Skelpy
-			forever start app.js --genesis genesisBlock.testnet.json --config config.testnet.json >&- 2>&-
+			forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
 			echo -e "$(green "    ✔ Skelpy Node was successfully started")\n"
         	        pause
         	fi
@@ -998,7 +999,7 @@ four(){
 		# Here should come the snap choice
 		snap_menu
                 echo -e "$(green "            Starting Skelpy Node...")"
-		forever start app.js --genesis genesisBlock.testnet.json --config config.testnet.json >&- 2>&-
+		forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
                 echo -e "\n$(green "    ✔ Skelpy Node was successfully started")\n"
                 pause
         else
@@ -1013,7 +1014,7 @@ four(){
 		snap_menu
 		echo -e "$(green "            Starting Skelpy Node...")"
 		cd $Skelpydir
-                forever start app.js --genesis genesisBlock.testnet.json --config config.testnet.json >&- 2>&-
+                forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
                 echo -e "$(green "    ✔ Skelpy Node was successfully started")\n"
                 pause
         fi
@@ -1038,7 +1039,7 @@ five(){
 		else
 			echo -e "\n$(red "       ✘ Skelpy Node process is not running")\n"
 			echo -e "$(green "            Starting Skelpy Node...")\n"
-			forever start app.js --genesis genesisBlock.testnet.json --config config.testnet.json >&- 2>&-
+			forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
 			echo -e "$(green "    ✔ Skelpy Node was successfully started")\n"
 			pause
 		fi
@@ -1082,7 +1083,7 @@ start(){
 		else
 			echo -e "$(green "            Starting Skelpy Node...")\n"
 			cd $Skelpydir
-			forever start app.js --genesis genesisBlock.testnet.json --config config.testnet.json >&- 2>&-
+			forever start app.js --genesis genesisBlock.mainnet.json --config config.mainnet.json >&- 2>&-
 			cd $parent
 			echo -e "$(green "    ✔ Skelpy Node was successfully started")\n"
 			sleep 1
