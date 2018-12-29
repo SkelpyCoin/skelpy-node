@@ -10,7 +10,7 @@ var Crypto = require('../helpers/crypto.js');
 var networks = require('../networks.json');
 
 // network name that SHOULD already be preconfigured in ../networks.json
-var network_name = "testnet";
+var network_name = "mainnet";
 if(!networks[network_name]){
   console.log("WARNING: no configuration found in networks.json for '"+network_name+"'. Defaulting to 'devnet'");
   network_name = "devnet";
@@ -26,7 +26,7 @@ var output_dir = './demo';
 var default_port = 4001;
 
 // version of network to set in the config file
-var config_version = '0.6.4';
+var config_version = '1.0.1';
 
 // ips of your nodes in your network
 var seed_peers = [
